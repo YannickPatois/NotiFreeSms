@@ -10,7 +10,7 @@ import argparse
 import requests
 import appdirs
 
-# https://smsapi.free-mobile.fr/sendmsg?user=<>&pass=<>&msg=<>
+kFREEAPIURL="https://smsapi.free-mobile.fr/sendmsg"
 
 class Contact:
   def __init__(self,name,cid,cpass):
@@ -62,6 +62,19 @@ class Contacts:
     pickle.dump(self._contacts,f)
     f.close()
 
+  def get_contact(self,name):
+    if (self._contacts.has_key(name)):
+      return self._contacts[name]
+    return None  
+
+
+def SendMessage(c,m):
+  payload = {'user': c._id, 'pass': c._pass, 'msg' : m}
+  print ("Sending message '' "+m+" '' to "+str(c)+"...")
+  r = requests.get(kFREEAPIURL,params=payload)
+  if (r.status_code == requests.codes.ok):
+    return 0
+  return (-1)
 
 # --------------------------------------------------------------------------
 # Welcome to Derry, Maine
@@ -86,6 +99,16 @@ def main():
                       default=None,
                       help="Mot de passe Free du contact")
   
+  parser.add_argument('--send', dest='send', action='store_true',
+                      default=False,
+                      help="Envoyer un message")
+  parser.add_argument('--sendto', dest='sendto', action='store',
+                      default=None,
+                      help="Destinataire du message")
+  parser.add_argument('--message', dest='message', action='store',
+                      default=None,
+                      help="Contenu du message")
+  
   args = parser.parse_args()
   
   ct=Contacts()
@@ -94,9 +117,11 @@ def main():
     print ct
     sys.exit(0)
 
+
+
   if (args.addcontact):
     if ( (not args.name) or (not args.userid) or (not args.userpass) ):
-      print ("Nom, ID et mot de passe sont nécessaires pour créer un compte!")
+      print ("Nom (--name), ID (--userid) et mot de passe (--userpass) sont nécessaires pour créer un compte!")
       sys.exit(1)
     print ("Ajout d'un contact")
     c=Contact(args.name    .decode('utf8'),
@@ -106,8 +131,22 @@ def main():
     ct.add(c)
     ct.write()
     print ct
+    sys.exit(0)
+
+  if (args.send):
+    if ( (not args.sendto) or (not args.message) ):
+      print ("Destinataire (--sendto) et message (--message) sont nécessaires pour envoyer un message!")
+      sys.exit(1)
+    c=ct.get_contact(args.sendto.decode('utf8'))
+    if (c):
+      sys.exit(SendMessage(c,args.message.decode('utf8')))
+    else:
+      print ("Destinataire "+args.sendto.decode('utf8')+" inconnu")
+      print ("L'ajouter aux contacts d'abord") # FIXME: allow sending when --name, --userid and --userpass are set
+      sys.exit(-1)
 
 
+# --------------------------------------------------------------------------
 if __name__ == '__main__':
   main()
 
