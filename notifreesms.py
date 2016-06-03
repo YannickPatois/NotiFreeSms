@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+from __future__ import unicode_literals
+
+import os, sys
 import pickle
 import argparse
 
@@ -13,11 +15,11 @@ import appdirs
 class Contact:
   def __init__(self,name,cid,cpass):
     self._name=name
-    self._id=cid
+    self._id  =cid
     self._pass=cpass
 
   def __str__(self):
-    return self._name+" "+self._id+" "+self._pass
+    return self._name.ljust(12)+" : "+self._id+" "+self._pass
   
 
 
@@ -31,27 +33,34 @@ class Contacts:
     self._file_name=os.path.join(_config_dir,"contacts.dat")
     if (os.path.isfile(self._file_name)):
       f=open(self._file_name)
-      self._contacts=pickle.load(f)
+      try:
+        self._contacts=pickle.load(f)
+      except EOFError:
+        print ("Empty contact file")
+        self._contacts={}
     else:
       self._contacts={}
      
   def __str__(self):
-    s="Contacts: "
-    for c in self._contacts:
+    s="Contacts:\n"
+    s="NOM            ID       PASS"
+    for k,c in self._contacts.items():
       s+="\n"+str(c)
     s+="\n"
     return s
 
 
-def add(c):
+  def add(self,c):
     if (self._contacts.has_key(c._name)):
       print ("Erreur: un contact avec le même nom ("+c._name+") existe déjà")
       print ("Utilisez --replacecontact et non --addcontact")
       return
     self._contacts[c._name]=c
- 
-  
-    
+
+  def write(self): 
+    f=open(self._file_name,"w") # FIXME : all contacts lost if something goes wrong here
+    pickle.dump(self._contacts,f)
+    f.close()
 
 
 # --------------------------------------------------------------------------
@@ -61,6 +70,9 @@ def main():
   parser = argparse.ArgumentParser(description="""
     Permet d'utiliser l'option Notification SMS Free Mobile SMS depuis un PC
     """)
+  parser.add_argument('--listcontacts', dest='listcontacts', action='store_true',
+                      default=False,
+                      help="Liste les contacts enregistrés")
   parser.add_argument('--addcontact', dest='addcontact', action='store_true',
                       default=False,
                       help="Nouveau contact")
@@ -78,13 +90,22 @@ def main():
   
   ct=Contacts()
   
+  if (args.listcontacts):
+    print ct
+    sys.exit(0)
+
   if (args.addcontact):
+    if ( (not args.name) or (not args.userid) or (not args.userpass) ):
+      print ("Nom, ID et mot de passe sont nécessaires pour créer un compte!")
+      sys.exit(1)
     print ("Ajout d'un contact")
-    c=Contact(args.name,args.userid,args.userpass)
+    c=Contact(args.name    .decode('utf8'),
+              args.userid  .decode('utf8'),
+              args.userpass.decode('utf8'))
     print c
     ct.add(c)
-    print ct
     ct.write()
+    print ct
 
 
 if __name__ == '__main__':
