@@ -32,7 +32,12 @@ class Contacts:
 # Welcome to Derry, Maine
 # --------------------------------------------------------------------------
 def main():
-  pass
+  parser = argparse.ArgumentParser(description='Permet d'utiliser l'option Notification SMS Free Mobile SMS depuis un PC')
+  parser.add_argument('--add', dest='accumulate', action='store_const',
+                      const=sum, default=max,
+                      help='sum the integers (default: find the max)')
+
+  args = parser.parse_args()
 
 
 
