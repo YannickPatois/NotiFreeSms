@@ -134,16 +134,25 @@ def main():
     sys.exit(0)
 
   if (args.send):
-    if ( (not args.sendto) or (not args.message) ):
-      print ("Destinataire (--sendto) et message (--message) sont nécessaires pour envoyer un message!")
+    if ( ( (not args.sendto) 
+          and ( (not args.userid) or (not args.userpass) ) )
+          or (not args.message) ):
+      print ("Destinataire (--sendto) (ou --userid et --userpass) et message (--message) sont nécessaires pour envoyer un message!")
       sys.exit(1)
-    c=ct.get_contact(args.sendto.decode('utf8'))
-    if (c):
-      sys.exit(SendMessage(c,args.message.decode('utf8')))
+    if (args.sendto):
+      c=ct.get_contact(args.sendto.decode('utf8'))
     else:
-      print ("Destinataire "+args.sendto.decode('utf8')+" inconnu")
-      print ("L'ajouter aux contacts d'abord") # FIXME: allow sending when --name, --userid and --userpass are set
-      sys.exit(-1)
+      c=None
+    if (not c):
+      if ( (not args.userid) or (not args.userpass) ):
+        print ("Destinataire "+args.sendto.decode('utf8')+" inconnu")
+        print ("Il faut soit l'ajouter aux contacts, soit renseigner directement --userid et --userpass")
+        sys.exit(-1)
+      c=Contact(args.userid  .decode('utf8'),
+                args.userid  .decode('utf8'),
+                args.userpass.decode('utf8'))
+     
+    sys.exit(SendMessage(c,args.message.decode('utf8')))
 
 
 # --------------------------------------------------------------------------
