@@ -20,7 +20,7 @@ class Contacts:
     self._file_name=os.path.join(_config_dir,"contacts.dat")
     if (os.path.isfile(self._file_name)):
       f=open(self._file_name)
-        self._contacts=pickle.load(f)
+      self._contacts=pickle.load(f)
     else:
       self._contacts={}
      
@@ -32,11 +32,22 @@ class Contacts:
 # Welcome to Derry, Maine
 # --------------------------------------------------------------------------
 def main():
-  parser = argparse.ArgumentParser(description='Permet d'utiliser l'option Notification SMS Free Mobile SMS depuis un PC')
-  parser.add_argument('--add', dest='accumulate', action='store_const',
-                      const=sum, default=max,
-                      help='sum the integers (default: find the max)')
-
+  parser = argparse.ArgumentParser(description="""
+    Permet d'utiliser l'option Notification SMS Free Mobile SMS depuis un PC
+    """)
+  parser.add_argument('--newcontact', dest='contact', action='store_true',
+                      default=False,
+                      help="Nouveau contact")
+  parser.add_argument('--name', dest='name', action='store',
+                      default=None,
+                      help="Nom du contact")
+  parser.add_argument('--userid', dest='userid', action='store',
+                      default=None,
+                      help="Identifiant Free du contact")
+  parser.add_argument('--userpass', dest='userpass', action='store',
+                      default=None,
+                      help="Mot de passe Free du contact")
+  
   args = parser.parse_args()
 
 
